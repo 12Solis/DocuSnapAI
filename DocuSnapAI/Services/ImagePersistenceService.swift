@@ -50,6 +50,19 @@ struct ImagePersistenceService {
             return nil
         }
     }
+    static func loadImageAsync(filename: String) async -> UIImage? {
+        return await Task.detached(priority: .userInitiated) {
+            guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return nil }
+            let fileURL = documentsDirectory.appendingPathComponent(filename)
+            
+            do {
+                let data = try Data(contentsOf: fileURL)
+                return UIImage(data: data)
+            } catch {
+                return nil
+            }
+        }.value
+    }
     
     // MARK:  Delete Image
     static func deleteImage(filename: String) {

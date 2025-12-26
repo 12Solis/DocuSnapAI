@@ -12,10 +12,16 @@ struct DocumentDetailView: View {
     @StateObject private var authenticationManager = AuthenticationManager()
     @Bindable var document: ScannedDocument
     
+    @Query(sort: \Tag.name) var allTags : [Tag]
+    @Environment(\.modelContext) private var modelContext
+    
+    @State private var showingTagPicker = false
+    @State private var newTagName = ""
+    
     var body: some View {
         if document.isPrivate{
             if authenticationManager.isAuthenticated {
-                DetailsView(document: document)
+                detailContent
             } else {
                 VStack {
                     Image(systemName: "lock.fill")
@@ -33,41 +39,96 @@ struct DocumentDetailView: View {
                 .ignoresSafeArea()
             }
         }else{
-            DetailsView(document: document)
+            detailContent
         }
     }
-}
-
-struct DetailsView: View{
     
-    @Bindable var document: ScannedDocument
-    @StateObject private var authenticationManager = AuthenticationManager()
     
-    @State private var errorMessage = ""
-    @State private var isShowingAlert = false
-    
-    var body: some View {
+    var detailContent: some View {
         Form{
+            //Image
             Section{
-                if let image = ImagePersistenceService.loadImage(filename: document.imagePath){
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .listRowInsets(EdgeInsets())
-                        .frame(maxHeight: 350)
-                }else{
-                    ContentUnavailableView("Image missing", systemImage: "photo.badge.exclamationmark")
-                }
+                DetailImageView(imagePath: document.imagePath)
             }
             .listRowBackground(Color.clear)
+            
+            //Tags
+            Section("Tags") {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(document.tags ?? []) { tag in
+                            HStack {
+                                Text("#\(tag.name)")
+                                    .font(.caption)
+                                    .bold()
+                                Button {
+                                    if let index = document.tags?.firstIndex(of: tag) {
+                                        document.tags?.remove(at: index)
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.caption2)
+                                }
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(.blue.opacity(0.1))
+                            .foregroundStyle(.blue)
+                            .clipShape(Capsule())
+                        }
+
+                        Menu {
+                            Button {
+                                showingTagPicker = true
+                            } label: {
+                                Label("Create New Tag", systemImage: "plus")
+                            }
+                                        
+                            Divider()
+
+                            ForEach(allTags) { tag in
+                                if !(document.tags?.contains(tag) ?? false) {
+                                    Button(tag.name) {
+                                        document.tags?.append(tag)
+                                    }
+                                }
+                            }
+                                        
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Add Tag")
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.gray.opacity(0.1))
+                            .clipShape(Capsule())
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            .alert("New Tag", isPresented: $showingTagPicker) {
+                TextField("Tag Name", text: $newTagName)
+                Button("Cancel", role: .cancel) { newTagName = "" }
+                Button("Create") {
+                    addTag(name: newTagName)
+                    newTagName = ""
+                }
+            }
+            
+            //Info
             Section("Info") {
                 TextField("Document Title", text: $document.title)
                     .font(.headline)
                     .autocorrectionDisabled()
-                            
+                
                 LabeledContent("Date Scanned", value: document.date, format: .dateTime.year().month().day().hour().minute())
                     .foregroundStyle(.secondary)
             }
+            
             Section("Extracted Text") {
                 TextEditor(text: $document.extractedText)
                     .frame(minHeight: 200)
@@ -123,7 +184,25 @@ struct DetailsView: View{
         }
     }
     
+    private func addTag(name: String) {
+            let cleanedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !cleanedName.isEmpty else { return }
+            
+            if let existingTag = allTags.first(where: { $0.name.localizedCaseInsensitiveContains(cleanedName) }) {
+                if !(document.tags?.contains(existingTag) ?? false) {
+                    document.tags?.append(existingTag)
+                }
+            } else {
+                let newTag = Tag(name: cleanedName)
+                modelContext.insert(newTag)
+                document.tags?.append(newTag)
+            }
+        }
+    
 }
+
+    
+    
 
 #Preview {
     DocumentDetailView(document: ScannedDocument(title: "", extractedText: "", imagePath: "", pdfPath: ""))

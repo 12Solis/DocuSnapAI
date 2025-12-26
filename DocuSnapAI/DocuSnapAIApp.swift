@@ -14,6 +14,6 @@ struct DocuSnapAIApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: ScannedDocument.self)
+        .modelContainer(for: [ScannedDocument.self, Tag.self])
     }
 }

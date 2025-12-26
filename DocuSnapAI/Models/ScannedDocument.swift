@@ -18,6 +18,9 @@ class ScannedDocument {
     var pdfPath: String
     var isPrivate: Bool
     
+    @Relationship(deleteRule: .nullify)
+    var tags: [Tag]?
+    
     init(title: String, extractedText: String, imagePath: String, pdfPath: String) {
         self.id = UUID()
         self.title = title
@@ -26,5 +29,6 @@ class ScannedDocument {
         self.date = Date()
         self.pdfPath = pdfPath
         self.isPrivate = false
+        self.tags = []
     }
 }

@@ -27,6 +27,45 @@ struct DocumentListView: View {
         }
     }
     
+    init(filterString: String, tagSelected: Tag?) {
+
+            let sortDescriptors = [SortDescriptor(\ScannedDocument.date, order: .reverse)]
+            
+            if let tag = tagSelected {
+                let tagName = tag.name
+                
+                if filterString.isEmpty {
+                    _scannedDocs = Query(
+                        filter: #Predicate { doc in
+                            doc.tags?.contains { $0.name == tagName } == true
+                        },
+                        sort: sortDescriptors
+                    )
+                } else {
+                    _scannedDocs = Query(
+                        filter: #Predicate { doc in
+                            doc.tags?.contains { $0.name == tagName } == true &&
+                            (doc.title.localizedStandardContains(filterString) ||
+                             doc.extractedText.localizedStandardContains(filterString))
+                        },
+                        sort: sortDescriptors
+                    )
+                }
+            } else {
+                if filterString.isEmpty {
+                    _scannedDocs = Query(sort: sortDescriptors)
+                } else {
+                    _scannedDocs = Query(
+                        filter: #Predicate { doc in
+                            doc.title.localizedStandardContains(filterString) ||
+                            doc.extractedText.localizedStandardContains(filterString)
+                        },
+                        sort: sortDescriptors
+                    )
+                }
+            }
+        }
+    
     var body: some View {
         if scannedDocs.isEmpty {
             ContentUnavailableView(
@@ -50,30 +89,17 @@ struct DocumentListView: View {
                                     Spacer()
                                 }
                             }else{
-                                
-                                if let image = ImagePersistenceService.loadImage(filename: doc.imagePath) {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 50, height: 50)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                } else {
-                                    Rectangle()
-                                        .fill(.gray.opacity(0.3))
-                                        .frame(width: 50, height: 50)
-                                        .cornerRadius(8)
-                                }
-                                
+                                DocumentThumbnail(imagePath: doc.imagePath)
                                 VStack(alignment: .leading) {
                                     Text(doc.title)
                                         .font(.headline)
-                                    
                                     Text(doc.extractedText)
                                         .font(.caption)
                                         .lineLimit(2)
                                         .foregroundStyle(.secondary)
                                 }
                             }
+                            
                         }
                     }
                     
