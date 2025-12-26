@@ -9,7 +9,42 @@ import SwiftUI
 import SwiftData
 
 struct DocumentDetailView: View {
+    @StateObject private var authenticationManager = AuthenticationManager()
     @Bindable var document: ScannedDocument
+    
+    var body: some View {
+        if document.isPrivate{
+            if authenticationManager.isAuthenticated {
+                DetailsView(document: document)
+            } else {
+                VStack {
+                    Image(systemName: "lock.fill")
+                        .foregroundStyle(.gray)
+                        .font(.largeTitle)
+                    Text("Use Face ID to see this document")
+                        .font(Font.title3.bold())
+                    Button("View Document") {
+                        Task {
+                            _ = await authenticationManager.authenticate()
+                        }
+                    }
+                    .padding()
+                }
+                .ignoresSafeArea()
+            }
+        }else{
+            DetailsView(document: document)
+        }
+    }
+}
+
+struct DetailsView: View{
+    
+    @Bindable var document: ScannedDocument
+    @StateObject private var authenticationManager = AuthenticationManager()
+    
+    @State private var errorMessage = ""
+    @State private var isShowingAlert = false
     
     var body: some View {
         Form{
@@ -43,28 +78,51 @@ struct DocumentDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar{
             ToolbarItem(placement: .topBarTrailing){
-                Menu{
-                    ShareLink(item: document.extractedText){
-                        Label("Share Text", systemImage: "character.cursor.ibeam") //character.cursor.ibeam
+                HStack {
+                    
+                    Button {
+                        Task {
+                            if document.isPrivate {
+                                let success = await authenticationManager.authenticate()
+                                if success {
+                                    document.isPrivate = false
+                                }
+                            } else {
+                                document.isPrivate = true
+                            }
+                        }
+                    } label: {
+                        Image(systemName: document.isPrivate ? "lock.fill" : "lock.open.fill")
+                            .foregroundStyle(document.isPrivate ? .red : .green)
                     }
                     
-                    if let fileUrl = ImagePersistenceService.getFileURL(filename: document.imagePath){
-                        ShareLink(item: fileUrl){
-                            Label("Share Image", systemImage: "photo")
+                    
+                    Menu{
+                        ShareLink(item: document.extractedText){
+                            Label("Share Text", systemImage: "character.cursor.ibeam")
                         }
+                        
+                        if let fileUrl = ImagePersistenceService.getFileURL(filename: document.imagePath){
+                            ShareLink(item: fileUrl){
+                                Label("Share Image", systemImage: "photo")
+                            }
+                        }
+                        
+                        if let pdfUrl = ImagePersistenceService.getFileURL(filename: document.pdfPath){
+                            ShareLink(item: pdfUrl){
+                                Label("Share PDF", systemImage: "doc.text")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
                     }
                     
-                    if let pdfUrl = ImagePersistenceService.getFileURL(filename: document.pdfPath){
-                        ShareLink(item: pdfUrl){
-                            Label("Share PDF", systemImage: "doc.text")
-                        }
-                    }
-                } label: {
-                    Image(systemName: "square.and.arrow.up")
+                    
                 }
             }
         }
     }
+    
 }
 
 #Preview {

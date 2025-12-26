@@ -39,27 +39,40 @@ struct DocumentListView: View {
                 ForEach(scannedDocs){ doc in
                     NavigationLink(destination: DocumentDetailView(document: doc)) {
                         HStack {
-                            if let image = ImagePersistenceService.loadImage(filename: doc.imagePath) {
-                                Image(uiImage: image)
+                            if doc.isPrivate {
+                                Image(systemName: "lock.document")
                                     .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 50, height: 50)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            } else {
-                                Rectangle()
-                                    .fill(.gray.opacity(0.3))
-                                    .frame(width: 50, height: 50)
-                                    .cornerRadius(8)
-                            }
-                                                
-                            VStack(alignment: .leading) {
-                                Text(doc.title)
-                                    .font(.headline)
-                                                
-                                Text(doc.extractedText)
-                                    .font(.caption)
-                                    .lineLimit(2)
-                                    .foregroundStyle(.secondary)
+                                    .scaledToFit()
+                                    .frame(maxHeight: 50)
+                                VStack(alignment: .leading){
+                                    Text(doc.title)
+                                        .font(.headline)
+                                    Spacer()
+                                }
+                            }else{
+                                
+                                if let image = ImagePersistenceService.loadImage(filename: doc.imagePath) {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 50, height: 50)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                } else {
+                                    Rectangle()
+                                        .fill(.gray.opacity(0.3))
+                                        .frame(width: 50, height: 50)
+                                        .cornerRadius(8)
+                                }
+                                
+                                VStack(alignment: .leading) {
+                                    Text(doc.title)
+                                        .font(.headline)
+                                    
+                                    Text(doc.extractedText)
+                                        .font(.caption)
+                                        .lineLimit(2)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }

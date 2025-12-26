@@ -16,6 +16,7 @@ class ScannedDocument {
     var imagePath: String
     var date: Date
     var pdfPath: String
+    var isPrivate: Bool
     
     init(title: String, extractedText: String, imagePath: String, pdfPath: String) {
         self.id = UUID()
@@ -24,5 +25,6 @@ class ScannedDocument {
         self.imagePath = imagePath
         self.date = Date()
         self.pdfPath = pdfPath
+        self.isPrivate = false
     }
 }
