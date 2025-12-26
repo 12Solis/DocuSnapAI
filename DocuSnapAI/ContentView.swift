@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import TipKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
@@ -29,6 +30,8 @@ struct ContentView: View {
     @State private var selectedPickerItems: [PhotosPickerItem] = []
     
     @State private var isShowingTagManager = false
+    
+    let scanDocTip = ScanDocumentTip()
     
     var body: some View {
         NavigationStack {
@@ -97,12 +100,14 @@ struct ContentView: View {
                             Menu {
                                 Button {
                                     isShowingScanner = true
+                                    Task{await ScanDocumentTip.documentScannedEvent.donate()}
                                 } label: {
                                     Label("Scan Document", systemImage: "camera.viewfinder")
                                 }
                                 
                                 Button {
                                     isShowingPhotoPicker = true
+                                    Task{await ScanDocumentTip.documentScannedEvent.donate()}
                                 } label: {
                                     Label("Import from Photos", systemImage: "photo.on.rectangle")
                                 }
@@ -112,6 +117,7 @@ struct ContentView: View {
                                 Image(systemName: "plus.circle.fill")
                                     .font(.title2)
                             }
+                            .popoverTip(scanDocTip)
                         }
                     }
                 }
@@ -144,6 +150,9 @@ struct ContentView: View {
                     }
                 }
             
+        }
+        .onAppear{
+            Task{await ScanDocumentTip.contentViewVisitedEvent.donate()}
         }
         .fullScreenCover(isPresented: Binding(
             get: { !hasSeenOnboarding },
