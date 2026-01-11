@@ -18,7 +18,7 @@
 * **Siri Integration:** Custom App Intents allow users to launch the scanner via Siri ("Siri, Scan Document") or Shortcuts widgets.
 * **PDF Generation:** Automatically creates shareable PDF assets from scanned images for easy export.
 
-## 🛠Tech Stack
+## Tech Stack
 
 * **Language:** Swift 5.9+
 * **UI Framework:** SwiftUI
