@@ -3,10 +3,10 @@
 **DocuSnap AI** is a native iOS application that leverages on-device Machine Learning to scan, digitize, and organize physical documents. Built with a strict "Offline-First" philosophy, it performs OCR (Optical Character Recognition) locally using the Vision Framework, ensuring sensitive user data never leaves the device.
 
 <p align="center">
-  <img src="OnboardingScreenshot.png" width="200" alt="Security Onboarding Page" />
-  <img src="MainViewScreenshot.png" width="200" alt="Main View" />
-  <img src="FaceIdScreenshot.png" width="200" alt="Biometric Lock" />
-  <img src="ScannedDocScreenshot.png" width="200" alt="Scanned Document View" />
+  <img src="assets/OnboardingScreenshot.png" width="200" alt="Security Onboarding Page" />
+  <img src="assets/MainViewScreenshot.png" width="200" alt="Main View" />
+  <img src="assets/FaceIdScreenshot.png" width="200" alt="Biometric Lock" />
+  <img src="assets/ScannedDocScreenshot.png" width="200" alt="Scanned Document View" />
 </p>
 
 ##  Key Features
